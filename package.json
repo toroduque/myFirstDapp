@@ -1,0 +1,7 @@
+{
+  "name": "myFirstDapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Daniel Toro <toro.duque@gmail.com>",
+  "license": "MIT"
+}
