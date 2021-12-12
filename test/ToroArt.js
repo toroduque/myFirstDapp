@@ -37,7 +37,7 @@ describe("ToroArt Contract", () => {
       const maxSupply = 2;
       const { deployed } = await setup({ maxSupply });
 
-      // mint all
+      // Mint all
       await Promise.all([deployed.mint(), deployed.mint()]);
 
       // Assert the last minting
