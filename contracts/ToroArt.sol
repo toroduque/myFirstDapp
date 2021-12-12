@@ -5,11 +5,14 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
 import "./Base64.sol";
 import "./ToroArtDNA.sol";
 
 contract ToroArt is ERC721, ERC721Enumerable, ToroArtDNA {
     using Counters for Counters.Counter;
+    using Strings for uint256;
 
     Counters.Counter private _idCounter;
     uint256 public maxSupply;
@@ -28,6 +31,7 @@ contract ToroArt is ERC721, ERC721Enumerable, ToroArtDNA {
             msg.sender
         );
         _safeMint(msg.sender, currentId);
+        _idCounter.increment();
     }
 
     function _baseURI() internal pure override returns (string memory) {
@@ -95,8 +99,8 @@ contract ToroArt is ERC721, ERC721Enumerable, ToroArtDNA {
         string memory jsonURI = Base64.encode(
             abi.encodePacked(
                 '{ "name": "ToroArt #',
-                tokenId,
-                '", "description": "ToroArt are randomized Avataars. This is just for learning purposes, relax", "image": " ',
+                tokenId.toString(),
+                '", "description": "ToroArt are randomized Avataars. This is just for learning purposes, relax", "image": "',
                 image,
                 '"}'
             )
