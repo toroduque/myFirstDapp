@@ -1,4 +1,5 @@
-// SPDX-License-Indentifier: MIT
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -7,11 +8,12 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "./Base64.sol";
 import "./ToroArtDNA.sol";
 
-contract ToroArt is ERC721, ERC721Enumerable {
+contract ToroArt is ERC721, ERC721Enumerable, ToroArtDNA {
     using Counters for Counters.Counter;
 
     Counters.Counter private _idCounter;
     uint256 public maxSupply;
+    mapping(uint256 => uint256) public tokenDNA;
 
     constructor(uint256 _maxSupply) ERC721("ToroArt", "TRART") {
         maxSupply = _maxSupply;
@@ -20,7 +22,60 @@ contract ToroArt is ERC721, ERC721Enumerable {
     function mint() public {
         uint256 currentId = _idCounter.current();
         require(currentId < maxSupply, "No ToroArts left :(");
+
+        tokenDNA[currentId] = deterministicPseudoRandomDNA(
+            currentId,
+            msg.sender
+        );
         _safeMint(msg.sender, currentId);
+    }
+
+    function _baseURI() internal pure override returns (string memory) {
+        return "https://avataaars.io/";
+    }
+
+    function _paramsURI(uint256 _dna) internal view returns (string memory) {
+        string memory params;
+
+        {
+            params = string(
+                abi.encodePacked(
+                    "accessoriesType=",
+                    getAccessoriesType(_dna),
+                    "&clotheColor=",
+                    getClotheColor(_dna),
+                    "&clotheType=",
+                    getClotheType(_dna),
+                    "&eyeType=",
+                    getEyeType(_dna),
+                    "&eyebrowType=",
+                    getEyeBrowType(_dna),
+                    "&facialHairColor=",
+                    getFacialHairColor(_dna),
+                    "&facialHairType=",
+                    getFacialHairType(_dna),
+                    "&hairColor=",
+                    getHairColor(_dna),
+                    "&hatColor=",
+                    getHatColor(_dna),
+                    "&graphicType=",
+                    getGraphicType(_dna),
+                    "&mouthType=",
+                    getMouthType(_dna),
+                    "&skinColor=",
+                    getSkinColor(_dna)
+                )
+            );
+        }
+
+        return string(abi.encodePacked(params, "&topType=", getTopType(_dna)));
+    }
+
+    function imageByDNA(uint256 _dna) public view returns (string memory) {
+        string memory baseURI = _baseURI();
+        string memory paramsURI = _paramsURI(_dna);
+
+        return string(abi.encodePacked(baseURI, "?", paramsURI));
     }
 
     function tokenURI(uint256 tokenId)
@@ -34,12 +89,15 @@ contract ToroArt is ERC721, ERC721Enumerable {
             "ERC721 Metadata: URI query for nonexistent token"
         );
 
+        uint256 dna = tokenDNA[tokenId];
+        string memory image = imageByDNA(dna);
+
         string memory jsonURI = Base64.encode(
             abi.encodePacked(
                 '{ "name": "ToroArt #',
                 tokenId,
                 '", "description": "ToroArt are randomized Avataars. This is just for learning purposes, relax", "image": " ',
-                "// TODO: Calculate image URL"
+                image,
                 '"}'
             )
         );
